@@ -131,7 +131,7 @@ public class ProduitDaoImpl implements IProduitDao {
 				produits.add(p);
 			}
 		} catch (SQLException e) {
-			e.printStackTrace(); // à remplacer par un logger
+			e.printStackTrace(); 
 		}
 		return produits;
 	}

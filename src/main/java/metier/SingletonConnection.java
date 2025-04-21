@@ -2,17 +2,17 @@ package metier;
 import java.sql.Connection;
 import java.sql.DriverManager;
 public class SingletonConnection {
-	private static Connection connection;
-	static {
-	try {
-	Class.forName("com.mysql.jdbc.Driver");
-	connection= DriverManager.getConnection
-	("jdbc:mysql://localhost:3306/db_j2ee","root","");
-	} catch (Exception e) {
-	e.printStackTrace();
-	}
-	}
-	public static Connection getConnection() {
-	return connection;
-}
+    private static Connection connection;
+
+    public static Connection getConnection() {
+        try {
+            if (connection == null || connection.isClosed()) {
+                Class.forName("com.mysql.jdbc.Driver");
+                connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/db_j2ee", "user", "pass");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return connection;
+    }
 }

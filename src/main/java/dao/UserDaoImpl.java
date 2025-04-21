@@ -17,15 +17,17 @@ public class UserDaoImpl implements IUserDao {
         Connection conn = SingletonConnection.getConnection();
         try {
             // Check if user already exists
-            PreparedStatement checkPs = conn.prepareStatement("SELECT login FROM user WHERE username = ?");
+            PreparedStatement checkPs = conn.prepareStatement("SELECT username FROM user WHERE username = ?");
             checkPs.setString(1, user.getLogin());
             ResultSet checkRs = checkPs.executeQuery();
             
             if (checkRs.next()) {
                 System.out.println("User already exists!");
+                checkRs.close();
                 checkPs.close();
                 return null;
             }
+            checkRs.close();
             checkPs.close();
             
             // Insert new user
@@ -57,6 +59,7 @@ public class UserDaoImpl implements IUserDao {
             if (rs.next()) {
                 user = new User(rs.getString("username"), rs.getString("password"));
             }
+            rs.close();
             ps.close();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -75,9 +78,10 @@ public class UserDaoImpl implements IUserDao {
             ResultSet rs = ps.executeQuery();
             
             while (rs.next()) {
-                User user = new User(rs.getString("login"), rs.getString("password"));
+                User user = new User(rs.getString("username"), rs.getString("password"));
                 users.add(user);
             }
+            rs.close();
             ps.close();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -97,8 +101,9 @@ public class UserDaoImpl implements IUserDao {
             ResultSet rs = ps.executeQuery();
             
             if (rs.next()) {
-                user = new User(rs.getString("login"), rs.getString("password"));
+                user = new User(rs.getString("username"), rs.getString("password"));
             }
+            rs.close();
             ps.close();
         } catch (SQLException e) {
             e.printStackTrace();
