@@ -1,12 +1,14 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.List" %>
 <%@ page import="metier.Produit" %>
+<%@ page import="metier.User" %>
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <title>MiniProjet - Produits</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body {
             background-color: #f8f9fa;
@@ -42,10 +44,10 @@
 </head>
 <body>
 
-<!-- 🔹 NAVBAR -->
+<!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg navbar-dark shadow">
   <div class="container-fluid">
-    <a class="navbar-brand" href="#">🛍️ MiniProjet</a>
+    <a class="navbar-brand" href="#"><i class="bi bi-box-seam me-2"></i>MiniProjet</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
         data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
         aria-label="Toggle navigation">
@@ -56,33 +58,44 @@
         <li class="nav-item">
           <form action="index" method="post" class="d-inline">
             <input type="hidden" name="action" value="showAddForm">
-            <button class="nav-link btn btn-outline-light" type="submit">➕ Ajouter</button>
+            <button class="nav-link btn btn-outline-light" type="submit">
+              <i class="bi bi-plus-circle me-1"></i>Ajouter
+            </button>
           </form>
         </li>
         <li class="nav-item">
           <form action="index" method="post" class="d-inline">
             <input type="hidden" name="action" value="showList">
-            <button class="nav-link btn btn-outline-light" type="submit">📋 Liste</button>
+            <button class="nav-link btn btn-outline-light" type="submit">
+              <i class="bi bi-list-ul me-1"></i>Liste
+            </button>
           </form>
         </li>
         <li class="nav-item">
-          <a class="nav-link btn btn-danger text-white" href="login.html">🚪 Déconnexion</a>
+          <form action="index" method="post" class="d-inline">
+            <input type="hidden" name="action" value="showUserList">
+            <button class="nav-link btn btn-outline-light" type="submit">
+              <i class="bi bi-people-fill me-1"></i>Utilisateurs
+            </button>
+          </form>
+        </li>
+        <li class="nav-item">
+          <form action="index" method="post" class="d-inline">
+            <input type="hidden" name="action" value="logout">
+            <button class="nav-link btn btn-danger text-white" type="submit">
+              <i class="bi bi-box-arrow-right me-1"></i>Déconnexion
+            </button>
+          </form>
         </li>
       </ul>
     </div>
   </div>
 </nav>
 
-<!-- 🔹 CONTENU -->
-<%
-    String res = (String) request.getAttribute("resultat");
-    String mdp = (String) request.getAttribute("motdepasse");
-    if ("user".equals(res) && "123".equals(mdp)) {
-%>
-
+<!-- CONTENU -->
 <div class="container py-5">
 
-    <%-- 🔔 Message --%>
+    <%-- Message --%>
     <% String msg = (String) request.getAttribute("message");
        if (msg != null) { %>
         <div class="alert alert-success text-center shadow-sm">
@@ -90,13 +103,13 @@
         </div>
     <% } %>
 
-    <%-- 🔹 Formulaire Ajout --%>
+    <%-- Formulaire Ajout --%>
     <% if (request.getAttribute("produits") == null) { %>
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <div class="card shadow">
                     <div class="card-header bg-primary text-white text-center">
-                        <h4 class="mb-0">📝 Ajouter un produit</h4>
+                        <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Ajouter un produit</h4>
                     </div>
                     <div class="card-body">
                         <form action="index" method="post">
@@ -110,10 +123,13 @@
                                 <input type="number" step="0.01" name="prix" id="prix" class="form-control" required>
                             </div>
                             <div class="text-center">
-                                <button type="submit" class="btn btn-success px-4">✅ Ajouter</button>
-                                <a href="index?action=showList" class="btn btn-secondary">✅Annuler</a>
+                                <button type="submit" class="btn btn-success px-4">
+                                    <i class="bi bi-check-circle me-1"></i>Ajouter
+                                </button>
+                                <a href="index?action=showList" class="btn btn-secondary">
+                                    <i class="bi bi-x-circle me-1"></i>Annuler
+                                </a>
                             </div>
-                            
                         </form>
                     </div>
                 </div>
@@ -121,73 +137,80 @@
         </div>
     <% } %>
 
-    <%-- 🔹 Liste Produits --%>
+    <%-- Liste Produits --%>
     <%
         List<Produit> produits = (List<Produit>) request.getAttribute("produits");
         if (produits != null && !produits.isEmpty()) {
     %>
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="bi bi-list-ul me-2"></i>Liste des Produits</h4>
+        </div>
+        <div class="card-body">
+            <!-- Recherche -->
+            <form class="d-flex mb-3" action="index" method="post">
+                <input class="form-control me-2" type="search" name="motcle" placeholder="Rechercher un produit..." aria-label="Rechercher" required>
+                <input type="hidden" name="action" value="rechercher">
+                <button class="btn btn-outline-dark" type="submit">
+                    <i class="bi bi-search me-1"></i>Rechercher
+                </button>
+            </form>
 
-    <!-- 🔍 Recherche -->
-    <form class="d-flex mt-4 mb-3" action="index" method="post">
-        <input class="form-control me-2" type="search" name="motcle" placeholder="🔍 Rechercher un produit..." aria-label="Rechercher" required>
-        <input type="hidden" name="action" value="rechercher">
-        <button class="btn btn-outline-dark" type="submit">Rechercher</button>
-    </form>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle shadow-sm">
+                    <thead class="table-dark text-center">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nom du produit</th>
+                            <th>Prix (DT)</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-center">
+                        <% for (Produit p : produits) { %>
+                        <tr>
+                            <td><%= p.getIdProduit() %></td>
+                            <td><%= p.getNomProduit() %></td>
+                            <td><%= p.getPrix() %></td>
+                            <td>
+                                <form action="index" method="post" class="d-inline">
+                                    <input type="hidden" name="action" value="details">
+                                    <input type="hidden" name="id" value="<%= p.getIdProduit() %>">
+                                    <button class="btn btn-info btn-sm">
+                                        <i class="bi bi-info-circle me-1"></i>Détails
+                                    </button>
+                                </form>
 
-    <div class="table-responsive">
-        <table class="table table-hover align-middle shadow-sm">
-            <thead class="table-dark text-center">
-                <tr>
-                    <th>ID</th>
-                    <th>Nom du produit</th>
-                    <th>Prix (DT)</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody class="text-center">
-                <% for (Produit p : produits) { %>
-                <tr>
-                    <td><%= p.getIdProduit() %></td>
-                    <td><%= p.getNomProduit() %></td>
-                    <td><%= p.getPrix() %></td>
-                    <td>
-                        <form action="index" method="post" class="d-inline">
-                            <input type="hidden" name="action" value="details">
-                            <input type="hidden" name="id" value="<%= p.getIdProduit() %>">
-                            <button class="btn btn-info btn-sm">Détails</button>
-                        </form>
+                                <form action="index" method="post" class="d-inline">
+                                    <input type="hidden" name="action" value="edit">
+                                    <input type="hidden" name="id" value="<%= p.getIdProduit() %>">
+                                    <button class="btn btn-warning btn-sm">
+                                        <i class="bi bi-pencil-fill me-1"></i>Modifier
+                                    </button>
+                                </form>
 
-                        <form action="index" method="post" class="d-inline">
-                            <input type="hidden" name="action" value="deleteProduit">
-                            <input type="hidden" name="id" value="<%= p.getIdProduit() %>">
-                            <button class="btn btn-danger btn-sm">Supprimer</button>
-                        </form>
-
-                        <form action="index" method="post" class="d-inline">
-                            <input type="hidden" name="action" value="edit">
-                            <input type="hidden" name="id" value="<%= p.getIdProduit() %>">
-                            <button class="btn btn-warning btn-sm">Modifier</button>
-                        </form>
-                    </td>
-                </tr>
-                <% } %>
-            </tbody>
-        </table>
+                                <form action="index" method="post" class="d-inline">
+                                    <input type="hidden" name="action" value="deleteProduit">
+                                    <input type="hidden" name="id" value="<%= p.getIdProduit() %>">
+                                    <button class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce produit?')">
+                                        <i class="bi bi-trash-fill me-1"></i>Supprimer
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
+    <% } else if (produits != null) { %>
+        <div class="alert alert-info text-center">
+            Aucun produit trouvé.
+        </div>
     <% } %>
 
 </div>
-
-<% } else { %>
-<div class="container mt-5">
-    <div class="alert alert-danger text-center shadow-sm">
-        ❌ Accès refusé. Veuillez vous connecter.
-    </div>
-    <div class="text-center">
-        <a href="login.html" class="btn btn-secondary">Retour à la connexion</a>
-    </div>
-</div>
-<% } %>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

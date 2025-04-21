@@ -52,7 +52,7 @@ public class controller extends HttpServlet {
         if ("login".equals(action)) {
             String login = request.getParameter("login");
             String password = request.getParameter("mdp");
-
+            System.out.println("test authenticate");
             User user = userDao.authenticate(login, password);
             
             if (user != null) {
@@ -98,6 +98,7 @@ public class controller extends HttpServlet {
             }
         }
         else if ("addProduit".equals(action)) {
+        	System.out.println("test ajout");
             String nomp = request.getParameter("nomp");
             String prixStr = request.getParameter("prix");
 

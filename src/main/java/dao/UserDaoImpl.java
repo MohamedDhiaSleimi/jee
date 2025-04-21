@@ -17,7 +17,7 @@ public class UserDaoImpl implements IUserDao {
         Connection conn = SingletonConnection.getConnection();
         try {
             // Check if user already exists
-            PreparedStatement checkPs = conn.prepareStatement("SELECT login FROM user WHERE login = ?");
+            PreparedStatement checkPs = conn.prepareStatement("SELECT login FROM user WHERE username = ?");
             checkPs.setString(1, user.getLogin());
             ResultSet checkRs = checkPs.executeQuery();
             
@@ -29,7 +29,7 @@ public class UserDaoImpl implements IUserDao {
             checkPs.close();
             
             // Insert new user
-            PreparedStatement ps = conn.prepareStatement("INSERT INTO user (login, password) VALUES (?, ?)");
+            PreparedStatement ps = conn.prepareStatement("INSERT INTO user (username, password) VALUES (?, ?)");
             ps.setString(1, user.getLogin());
             ps.setString(2, user.getMdp());
             ps.executeUpdate();
@@ -49,13 +49,13 @@ public class UserDaoImpl implements IUserDao {
         User user = null;
         
         try {
-            PreparedStatement ps = conn.prepareStatement("SELECT * FROM user WHERE login = ? AND password = ?");
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM user WHERE username = ? AND password = ?");
             ps.setString(1, login);
             ps.setString(2, password);
             ResultSet rs = ps.executeQuery();
             
             if (rs.next()) {
-                user = new User(rs.getString("login"), rs.getString("password"));
+                user = new User(rs.getString("username"), rs.getString("password"));
             }
             ps.close();
         } catch (SQLException e) {
@@ -92,7 +92,7 @@ public class UserDaoImpl implements IUserDao {
         User user = null;
         
         try {
-            PreparedStatement ps = conn.prepareStatement("SELECT * FROM user WHERE login = ?");
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM user WHERE username = ?");
             ps.setString(1, login);
             ResultSet rs = ps.executeQuery();
             
@@ -112,7 +112,7 @@ public class UserDaoImpl implements IUserDao {
         Connection conn = SingletonConnection.getConnection();
         
         try {
-            PreparedStatement ps = conn.prepareStatement("UPDATE user SET password = ? WHERE login = ?");
+            PreparedStatement ps = conn.prepareStatement("UPDATE user SET password = ? WHERE username = ?");
             ps.setString(1, user.getMdp());
             ps.setString(2, user.getLogin());
             int rows = ps.executeUpdate();
@@ -136,7 +136,7 @@ public class UserDaoImpl implements IUserDao {
         Connection conn = SingletonConnection.getConnection();
         
         try {
-            PreparedStatement ps = conn.prepareStatement("DELETE FROM user WHERE login = ?");
+            PreparedStatement ps = conn.prepareStatement("DELETE FROM user WHERE username = ?");
             ps.setString(1, login);
             ps.executeUpdate();
             ps.close();
