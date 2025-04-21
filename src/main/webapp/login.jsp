@@ -1,3 +1,4 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -33,12 +34,24 @@
           <h4><i class="bi bi-person-fill-lock me-2"></i>Connexion</h4>
         </div>
         <div class="card-body bg-light">
+          <% if(request.getAttribute("errorMessage") != null) { %>
+            <div class="alert alert-danger">
+              <%= request.getAttribute("errorMessage") %>
+            </div>
+          <% } %>
+          
+          <% if(request.getAttribute("successMessage") != null) { %>
+            <div class="alert alert-success">
+              <%= request.getAttribute("successMessage") %>
+            </div>
+          <% } %>
+          
           <form action="index" method="post">
             <input type="hidden" name="action" value="login">
             <div class="mb-3">
-              <label class="form-label">Adresse e-mail</label>
+              <label class="form-label">Adresse e-mail ou Nom d'utilisateur</label>
               <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-envelope-at"></i></span>
+                <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
                 <input type="text" name="login" class="form-control" required>
               </div>
             </div>
@@ -55,6 +68,12 @@
               </button>
             </div>
           </form>
+          
+          <div class="mt-3 text-center">
+            <p>Pas encore de compte ? 
+              <a href="index?action=showRegisterForm" class="text-decoration-none">S'inscrire</a>
+            </p>
+          </div>
         </div>
       </div>
     </div>

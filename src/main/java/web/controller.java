@@ -1,11 +1,11 @@
 package web;
 
 import jakarta.servlet.ServletException;
-
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import metier.Produit;
 import metier.User;
 
@@ -13,154 +13,219 @@ import java.io.IOException;
 import java.util.List;
 
 import dao.ProduitDaoImpl;
+import dao.UserDaoImpl;
 
 /**
  * Servlet implementation class controller
  */
 @WebServlet(name="cs",urlPatterns={"/index"})
 public class controller extends HttpServlet {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
        
-	ProduitDaoImpl dao = new ProduitDaoImpl(); 
-	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-	    doPost(request, response); // redirige les requêtes GET vers doPost()
-	    
-	}
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-	    String action = request.getParameter("action");
+    ProduitDaoImpl produitDao = new ProduitDaoImpl();
+    UserDaoImpl userDao = new UserDaoImpl();
+    
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        doPost(request, response); // redirige les requêtes GET vers doPost()
+    }
+    
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String action = request.getParameter("action");
+        HttpSession session = request.getSession();
 
-	    if ("login".equals(action)) {
-	        String mail = request.getParameter("login");
-	        String mdp = request.getParameter("mdp");
+        // Action de déconnexion
+        if ("logout".equals(action)) {
+            session.invalidate();
+            response.sendRedirect("login.html");
+            return;
+        }
 
-	        request.setAttribute("resultat", mail);
-	        request.setAttribute("motdepasse", mdp); 
-	        System.out.println("Email saisi : " + mail);
-	        System.out.println("Mot de passe saisi : " + mdp);
+        // Vérifier si l'utilisateur est connecté (sauf pour login et register)
+        if (!"login".equals(action) && !"register".equals(action) && !"showRegisterForm".equals(action)) {
+            if (session.getAttribute("user") == null) {
+                response.sendRedirect("login.html");
+                return;
+            }
+        }
 
-	        User u1 = new User(mail, mdp);
-	        if (u1.verif()) {
-	        	request.setAttribute("produits", dao.getAllProduits());
-	            request.getRequestDispatcher("vue.jsp").forward(request, response);
-	        } else {
-	            request.getRequestDispatcher("login.html").forward(request, response);
-	        }
-	    }
+        if ("login".equals(action)) {
+            String login = request.getParameter("login");
+            String password = request.getParameter("mdp");
 
-	    else if ("addProduit".equals(action)) {
-	        String nomp = request.getParameter("nomp");
-	        String prixStr = request.getParameter("prix");
+            User user = userDao.authenticate(login, password);
+            
+            if (user != null) {
+                session.setAttribute("user", user);
+                request.setAttribute("produits", produitDao.getAllProduits());
+                request.getRequestDispatcher("vue.jsp").forward(request, response);
+            } else {
+                request.setAttribute("errorMessage", "Login ou mot de passe incorrect");
+                request.getRequestDispatcher("login.jsp").forward(request, response);
+            }
+        }
+        else if ("showRegisterForm".equals(action)) {
+            request.getRequestDispatcher("register.jsp").forward(request, response);
+        }
+        else if ("register".equals(action)) {
+            String login = request.getParameter("login");
+            String password = request.getParameter("mdp");
+            String confirmPassword = request.getParameter("confirm_mdp");
+            
+            // Vérifier si les mots de passe correspondent
+            if (!password.equals(confirmPassword)) {
+                request.setAttribute("errorMessage", "Les mots de passe ne correspondent pas");
+                request.getRequestDispatcher("register.jsp").forward(request, response);
+                return;
+            }
+            
+            // Vérifier si l'utilisateur existe déjà
+            if (userDao.getUser(login) != null) {
+                request.setAttribute("errorMessage", "Cet utilisateur existe déjà");
+                request.getRequestDispatcher("register.jsp").forward(request, response);
+                return;
+            }
+            
+            User newUser = new User(login, password);
+            User savedUser = userDao.save(newUser);
+            
+            if (savedUser != null) {
+                request.setAttribute("successMessage", "Inscription réussie. Veuillez vous connecter.");
+                request.getRequestDispatcher("login.jsp").forward(request, response);
+            } else {
+                request.setAttribute("errorMessage", "Erreur lors de l'inscription");
+                request.getRequestDispatcher("register.jsp").forward(request, response);
+            }
+        }
+        else if ("addProduit".equals(action)) {
+            String nomp = request.getParameter("nomp");
+            String prixStr = request.getParameter("prix");
 
-	        double prix = Double.parseDouble(prixStr);
-	        Produit produit = new Produit(nomp, prix);
-	        dao.save(produit);
-	        response.sendRedirect("index?action=showList");
-	        /*List<Produit> produits = dao.getAllProduits();
-	        request.setAttribute("produits", produits); 
-	        request.setAttribute("message", "Produit ajouté avec succès !");
-	        // Tu peux remettre les infos de l'utilisateur si besoin
-	        request.setAttribute("resultat", "user");
-	        request.setAttribute("motdepasse", "123");
-	        request.getRequestDispatcher("vue.jsp").forward(request, response);*/
-	    }
-	    //-------------------------------
-	    else if ("showAddForm".equals(action)) {
-	        // Affiche le formulaire d'ajout sans ajouter
-	        request.setAttribute("resultat", "user");
-	        request.setAttribute("motdepasse", "123");
-	        request.getRequestDispatcher("vue.jsp").forward(request, response);
-	    } else if ("showList".equals(action)) {
-	        request.setAttribute("produits", dao.getAllProduits());
-	        request.setAttribute("resultat", "user");
-	        request.setAttribute("motdepasse", "123");
-	        request.getRequestDispatcher("vue.jsp").forward(request, response);
-	    }
-	    else if ("rechercher".equals(action)){
-	    String motCle = request.getParameter("motcle");
-	    List<Produit> produits = dao.produitsParMC(motCle);
-	    request.setAttribute("produits", produits);
-	    request.setAttribute("resultat", "user");
-	    request.setAttribute("motdepasse", "123");
-	    request.getRequestDispatcher("vue.jsp").forward(request, response);
-	    }
-	    else if ("details".equals(request.getParameter("action"))) {
-	    	String idstr = request.getParameter("id");
-	    	Long id = Long.parseLong(idstr);
-	    	Produit p= dao.getProduit(id);
-	    	request.setAttribute("produit", p);
-	    	request.getRequestDispatcher("details.jsp").forward(request, response);
-	    	
-	    }
-	    else if ("deleteProduit".equals(action)) {
-	        String idStr = request.getParameter("id");
-	        Long id = Long.parseLong(idStr);
+            double prix = Double.parseDouble(prixStr);
+            Produit produit = new Produit(nomp, prix);
+            produitDao.save(produit);
+            response.sendRedirect("index?action=showList");
+        }
+        else if ("showAddForm".equals(action)) {
+            request.getRequestDispatcher("vue.jsp").forward(request, response);
+        } 
+        else if ("showList".equals(action)) {
+            request.setAttribute("produits", produitDao.getAllProduits());
+            request.getRequestDispatcher("vue.jsp").forward(request, response);
+        }
+        else if ("rechercher".equals(action)){
+            String motCle = request.getParameter("motcle");
+            List<Produit> produits = produitDao.produitsParMC(motCle);
+            request.setAttribute("produits", produits);
+            request.getRequestDispatcher("vue.jsp").forward(request, response);
+        }
+        else if ("details".equals(action)) {
+            String idstr = request.getParameter("id");
+            Long id = Long.parseLong(idstr);
+            Produit p = produitDao.getProduit(id);
+            request.setAttribute("produit", p);
+            request.getRequestDispatcher("details.jsp").forward(request, response);
+        }
+        else if ("deleteProduit".equals(action)) {
+            String idStr = request.getParameter("id");
+            Long id = Long.parseLong(idStr);
 
-	        // Appel de la méthode pour supprimer le produit
-	        dao.deleteProduit(id);
+            produitDao.deleteProduit(id);
 
-	        // Redirection vers la liste des produits après suppression
-	        request.setAttribute("produits", dao.getAllProduits());
-	        request.setAttribute("message", "Produit supprimé avec succès !");
-	        request.setAttribute("resultat", "user");
-	        request.setAttribute("motdepasse", "123");
-	        request.getRequestDispatcher("vue.jsp").forward(request, response);
-	    }
-	    else if ("edit".equals(action)) {
-	        // Récupérer l’ID du produit à modifier
-	        Long id = Long.parseLong(request.getParameter("id"));
-	        Produit p = dao.getProduit(id); // récupérer depuis la base
+            request.setAttribute("produits", produitDao.getAllProduits());
+            request.setAttribute("message", "Produit supprimé avec succès !");
+            request.getRequestDispatcher("vue.jsp").forward(request, response);
+        }
+        else if ("edit".equals(action)) {
+            Long id = Long.parseLong(request.getParameter("id"));
+            Produit p = produitDao.getProduit(id);
 
-	        if (p != null) {
-	            request.setAttribute("produit", p);
-	            request.getRequestDispatcher("update.jsp").forward(request, response);
-	        } else {
-	            // produit introuvable, retour à la liste
-	            response.sendRedirect("index?action=showList");
-	        }
-	    }
-	    else if ("updateProduit".equals(action)) {
-	        String idStr = request.getParameter("id");
-	        String nomp = request.getParameter("nomp");
-	        String prixStr = request.getParameter("prix");
+            if (p != null) {
+                request.setAttribute("produit", p);
+                request.getRequestDispatcher("update.jsp").forward(request, response);
+            } else {
+                response.sendRedirect("index?action=showList");
+            }
+        }
+        else if ("updateProduit".equals(action)) {
+            String idStr = request.getParameter("id");
+            String nomp = request.getParameter("nomp");
+            String prixStr = request.getParameter("prix");
 
-	        if (idStr != null && nomp != null && prixStr != null) {
-	            try {
-	                Long id = Long.parseLong(idStr);
-	                double prix = Double.parseDouble(prixStr);
+            if (idStr != null && nomp != null && prixStr != null) {
+                try {
+                    Long id = Long.parseLong(idStr);
+                    double prix = Double.parseDouble(prixStr);
 
-	                Produit p = new Produit();
-	                p.setIdProduit(id);
-	                p.setNomProduit(nomp);
-	                p.setPrix(prix);
+                    Produit p = new Produit();
+                    p.setIdProduit(id);
+                    p.setNomProduit(nomp);
+                    p.setPrix(prix);
 
-	                Produit updated = dao.updateProduit(p);
+                    Produit updated = produitDao.updateProduit(p);
 
-	                if (updated != null) {
-	                    request.setAttribute("message", "Produit mis à jour avec succès !");
-	                } else {
-	                    request.setAttribute("message", "Erreur : produit introuvable.");
-	                }
+                    if (updated != null) {
+                        request.setAttribute("message", "Produit mis à jour avec succès !");
+                    } else {
+                        request.setAttribute("message", "Erreur : produit introuvable.");
+                    }
 
-	                request.setAttribute("produits", dao.getAllProduits());
-	                request.setAttribute("resultat", "user");
-	                request.setAttribute("motdepasse", "123");
-	                request.getRequestDispatcher("vue.jsp").forward(request, response);
+                    request.setAttribute("produits", produitDao.getAllProduits());
+                    request.getRequestDispatcher("vue.jsp").forward(request, response);
 
-	            } catch (NumberFormatException e) {
-	                request.setAttribute("message", "Erreur : format invalide.");
-	                request.getRequestDispatcher("vue.jsp").forward(request, response);
-	            }
-	        } else {
-	            request.setAttribute("message", "Champs manquants.");
-	            request.getRequestDispatcher("vue.jsp").forward(request, response);
-	        }
-	    }
-
-
-
-	    	
-	}
-
-
+                } catch (NumberFormatException e) {
+                    request.setAttribute("message", "Erreur : format invalide.");
+                    request.getRequestDispatcher("vue.jsp").forward(request, response);
+                }
+            } else {
+                request.setAttribute("message", "Champs manquants.");
+                request.getRequestDispatcher("vue.jsp").forward(request, response);
+            }
+        }
+        // User management actions
+        else if ("showUserList".equals(action)) {
+            request.setAttribute("users", userDao.getAllUsers());
+            request.getRequestDispatcher("userList.jsp").forward(request, response);
+        }
+        else if ("deleteUser".equals(action)) {
+            String login = request.getParameter("login");
+            userDao.deleteUser(login);
+            
+            request.setAttribute("users", userDao.getAllUsers());
+            request.setAttribute("message", "Utilisateur supprimé avec succès !");
+            request.getRequestDispatcher("userList.jsp").forward(request, response);
+        }
+        else if ("editUser".equals(action)) {
+            String login = request.getParameter("login");
+            User user = userDao.getUser(login);
+            
+            if (user != null) {
+                request.setAttribute("user", user);
+                request.getRequestDispatcher("updateUser.jsp").forward(request, response);
+            } else {
+                response.sendRedirect("index?action=showUserList");
+            }
+        }
+        else if ("updateUser".equals(action)) {
+            String login = request.getParameter("login");
+            String password = request.getParameter("mdp");
+            
+            User user = new User(login, password);
+            User updated = userDao.updateUser(user);
+            
+            if (updated != null) {
+                request.setAttribute("message", "Utilisateur mis à jour avec succès !");
+            } else {
+                request.setAttribute("message", "Erreur : utilisateur introuvable.");
+            }
+            
+            request.setAttribute("users", userDao.getAllUsers());
+            request.getRequestDispatcher("userList.jsp").forward(request, response);
+        }
+        else {
+            // Default action - redirect to product list
+            request.setAttribute("produits", produitDao.getAllProduits());
+            request.getRequestDispatcher("vue.jsp").forward(request, response);
+        }
+    }
 }
