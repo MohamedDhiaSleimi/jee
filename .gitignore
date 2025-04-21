@@ -1,0 +1,28 @@
+# Ignore build output
+/build/
+/bin/
+/target/
+
+# Ignore WEB-INF content
+/src/main/webapp/WEB-INF/lib/
+/src/main/webapp/WEB-INF/classes/
+
+# Ignore Eclipse specific files
+/.settings/
+.classpath
+.project
+.metadata/
+
+# Ignore IntelliJ IDEA specific files
+/.idea/
+*.iml
+*.iws
+*.ipr
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore logs
+*.log
+logs/
