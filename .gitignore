@@ -9,15 +9,15 @@
 
 # Ignore Eclipse specific files
 /.settings/
-.classpath
-.project
-.metadata/
+/.classpath
+/.project
+/.metadata/
 
 # Ignore IntelliJ IDEA specific files
 /.idea/
-*.iml
-*.iws
-*.ipr
+/*.iml
+/*.iws
+/*.ipr
 
 # Ignore system files
 .DS_Store
@@ -26,3 +26,6 @@ Thumbs.db
 # Ignore logs
 *.log
 logs/
+
+# Ignore the MySQL connector jar specifically
+/src/main/webapp/WEB-INF/lib/mysql-connector-java-5.1.5-bin.jar
