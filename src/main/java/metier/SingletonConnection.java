@@ -8,10 +8,10 @@ public class SingletonConnection {
         try {
             if (connection == null || connection.isClosed()) {
                 Class.forName("com.mysql.jdbc.Driver");
-                connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/db_j2ee", "user", "pass");
+                connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/db_j2e", "user", "pass");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("EXCEPTION:"+e);
         }
         return connection;
     }
